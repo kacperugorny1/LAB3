@@ -11,16 +11,17 @@ namespace MatrixClass
     {
         int _x;
         int _y;
-         int[,] _values; 
+        int[,] _values; 
         public int X { get => _x; set => _x = value; }
         public int Y { get => _y; set => _y = value; }
         public int[,] Values { get => _values; set => _values = value; }
+
 
         public Matrix(int x, int y, Random generator)
         {
             X = x;
             Y = y;
-            Values = new int[x, y];
+            _values = new int[x, y];
             for(int i = 0; i < x; i++) 
                 for(int j = 0; j < y; j++) Values[i, j] = generator.Next(10);
             
@@ -29,7 +30,7 @@ namespace MatrixClass
         {
             X = x;
             Y = y;
-            Values = new int[x, y];
+            _values = new int[x, y];
         }
         public override bool Equals(object? obj)
         {
@@ -43,7 +44,6 @@ namespace MatrixClass
             return true;
         }
 
-        //Returns null when cant mutliply those matrix
         public static Matrix Multiply(Matrix A, Matrix B)
         {
             Matrix ans;
@@ -54,6 +54,13 @@ namespace MatrixClass
                 for (int j = 0; j < ans.Y; ++j) ans.Values[i,j] = CountElement(A, B, i, j);
             Console.WriteLine($"Single thread finished in {watch.ElapsedMilliseconds} ms");
             return ans;
+        }
+        public static int CountElement(Matrix A, Matrix B, int x, int y)
+        {
+            int res = 0;
+            for(int i = 0; i < A.Y; ++i)
+                res += A.Values[x, i] * B.Values[i, y];
+            return res;
         }
         public static Matrix MultiplyParallel(Matrix A, Matrix B, int thread_count)
         {
@@ -86,8 +93,9 @@ namespace MatrixClass
                     thread.Add(new(() => CountElements(ans, A, B, index * thread_howMany, thread_howMany)));
                 else
                 {
-                    int z = 1;
-                    while ((index * thread_howMany + thread_howMany - z) / ans.Y >= ans.X)  --z;
+                    int z = 0;
+                    while ((index * thread_howMany + thread_howMany - z) / ans.Y >= ans.X)  ++z;
+                    --z;
                     thread.Add(new(() => CountElements(ans, A, B, index * thread_howMany, thread_howMany - z)));
 
                 }
@@ -99,13 +107,6 @@ namespace MatrixClass
             Console.WriteLine($"{thread_count} threads finished in {watch.ElapsedMilliseconds} ms");
 
             return ans;
-        }
-        public static int CountElement(Matrix A, Matrix B, int x, int y)
-        {
-            int res = 0;
-            for(int i = 0; i < A.Y; ++i)
-                res += A.Values[x, i] * B.Values[i, y];
-            return res;
         }
         public static void CountElements(Matrix ans, Matrix A, Matrix B, int start, int elems)
         {
@@ -130,6 +131,11 @@ namespace MatrixClass
             }
 
             return ans;
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
         }
     }
 }
